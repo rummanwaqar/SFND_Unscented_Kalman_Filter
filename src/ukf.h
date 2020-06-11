@@ -5,16 +5,11 @@
 #include "measurement_package.h"
 
 class UKF {
- public:
+public:
   /**
    * Constructor
    */
   UKF();
-
-  /**
-   * Destructor
-   */
-  virtual ~UKF();
 
   /**
    * ProcessMeasurement
@@ -41,7 +36,6 @@ class UKF {
    */
   void UpdateRadar(MeasurementPackage meas_package);
 
-
   // initially set to false, set to true in first call of ProcessMeasurement
   bool is_initialized_;
 
@@ -61,7 +55,7 @@ class UKF {
   Eigen::MatrixXd Xsig_pred_;
 
   // time when the state is true, in us
-  long long time_us_;
+  long long time_us_{};
 
   // Process noise standard deviation longitudinal acceleration in m/s^2
   double std_a_;
@@ -82,7 +76,10 @@ class UKF {
   double std_radphi_;
 
   // Radar measurement noise standard deviation radius change in m/s
-  double std_radrd_ ;
+  double std_radrd_;
+
+  Eigen::MatrixXd R_laser_;
+  Eigen::MatrixXd R_radar_;
 
   // Weights of sigma points
   Eigen::VectorXd weights_;
@@ -95,6 +92,39 @@ class UKF {
 
   // Sigma point spreading parameter
   double lambda_;
+
+  // NIS values for debug
+  double NIS_radar_;
+  double NIS_lidar_;
+
+private:
+  /**
+   * Calculates sigma points
+   * @param x
+   * @param P
+   * @param lambda
+   * @return
+   */
+  Eigen::MatrixXd calculateSigmaPoints(const Eigen::VectorXd &x,
+                                       const Eigen::MatrixXd P, double lambda);
+
+  /**
+   * calculate state from sigma points
+   * @param Xsig
+   * @return
+   */
+  Eigen::VectorXd calculateState(const Eigen::MatrixXd &Xsig);
+
+  /**
+   * calculate covariance from sigma points
+   * @param Xsig
+   * @param diffFn calculates difference between sigma column and x
+   * @return
+   */
+  Eigen::MatrixXd calculateCovariance(
+      const Eigen::MatrixXd Xsig,
+      const std::function<Eigen::VectorXd(const Eigen::VectorXd &Xsig)>
+          &diffFn);
 };
 
-#endif  // UKF_H
+#endif // UKF_H
